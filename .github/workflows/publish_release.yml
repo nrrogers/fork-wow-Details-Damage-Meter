@@ -6,7 +6,7 @@ name: Publish Release
 # #       - 'v*'
 on:
   workflow_run:
-    workflows: [Scheduled merge action]
+    workflows: [Scheduled merge action, Manual Merge Remote Action]
     types: completed
 # on: 
 #   workflow_dispatch:
