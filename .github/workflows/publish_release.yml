@@ -1,0 +1,27 @@
+name: Publish Release
+# on:
+#   workflow_dispatch:
+# #   push:
+# #     tags:
+# #       - 'v*'
+on:
+  workflow_run:
+    workflows: [Scheduled merge action]
+    types: completed
+# on: 
+#   workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d-%H-%M')"
+    - uses: actions/checkout@v3
+    - name: Create a Release
+      uses: elgohr/Github-Release-Action@v4
+      env:
+        GITHUB_TOKEN: ${{ secrets.BIGWIGSPUSH }}
+      with:
+        title: "${{ steps.date.outputs.date }}"
