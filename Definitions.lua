@@ -58,34 +58,36 @@
 ---@field EJID number
 
 ---@class mythicdungeoninfo
----@field StartedAt number
----@field EndedAt number
----@field WorldStateTimerStart number
----@field WorldStateTimerEnd number
----@field RunTime number
----@field TimeInCombat number
----@field SegmentID string
----@field RunID number
----@field OverallSegment boolean
----@field ZoneName string
----@field EJID number
----@field MapID number
----@field Level number
----@field OnTime boolean
----@field KeystoneUpgradeLevels number
----@field PracticeRun boolean
----@field OldDungeonScore number
----@field NewDungeonScore number
----@field IsAffixRecord boolean
----@field IsMapRecord boolean
----@field PrimaryAffix number
----@field IsEligibleForScore boolean
----@field UpgradeMembers table
----@field TimeLimit number
----@field DungeonName string
----@field DungeonID number
----@field DungeonTexture string
----@field DungeonBackgroundTexture string|number
+---@field StartedAt number?
+---@field EndedAt number?
+---@field WorldStateTimerStart number?
+---@field WorldStateTimerEnd number?
+---@field RunTime number?
+---@field TimeInCombat number?
+---@field SegmentID string?
+---@field RunID number?
+---@field OverallSegment boolean?
+---@field ZoneName string?
+---@field EJID number?
+---@field MapID number?
+---@field Level number?
+---@field OnTime boolean?
+---@field KeystoneUpgradeLevels number?
+---@field PracticeRun boolean?
+---@field OldDungeonScore number?
+---@field NewDungeonScore number?
+---@field IsAffixRecord boolean?
+---@field IsMapRecord boolean?
+---@field PrimaryAffix number?
+---@field IsEligibleForScore boolean?
+---@field UpgradeMembers table?
+---@field TimeLimit number?
+---@field DungeonName string?
+---@field DungeonID number?
+---@field DungeonTexture string?
+---@field DungeonBackgroundTexture string|number?
+---@field SegmentType number?
+---@field SegmentName string?
 
 ---@alias containertype number this container type is the number used to identify the actorcontainer type when using combat:GetContainer(containertype), can be 1, 2, 3, or 4.
 
@@ -113,19 +115,19 @@
 ---@field key7 guid pet guid
 
 ---@class bossinfo : table .is_boss on combatObjects
----@field diff_string string
----@field index number
----@field zone string
----@field encounter string
----@field mapid number
----@field try_number number
----@field name string
----@field ej_instance_id number
----@field id number
----@field unixtime unixtime
----@field diff number
----@field killed boolean
----@field bossimage texturepath|number
+---@field diff_string string?
+---@field index number?
+---@field zone string?
+---@field encounter string?
+---@field mapid number?
+---@field try_number number?
+---@field name string?
+---@field ej_instance_id number?
+---@field id number?
+---@field unixtime unixtime?
+---@field diff number?
+---@field killed boolean?
+---@field bossimage texturepath|number?
 
 ---@class details
 ---@field pets table<guid, petinfo> store the pet guid as the key and the petinfo as the value
@@ -236,10 +238,10 @@
 ---@field raid_roster table<string, string> [unitName] = unitGUID
 ---@field overall_added boolean is true when the combat got added into the overall combat
 ---@field is_mythic_dungeon mythicdungeoninfo
----@field is_mythic_dungeon_trash mythicdungeontrashinfo
 ---@field is_mythic_dungeon_run_id number
 ---@field is_mythic_dungeon_segment boolean
 ---@field trinketProcs table<actorname, table<spellid, {cooldown: number, total: number}>>
+---@field _trashoverallalreadyadded boolean
 ---@field alternate_power table<actorname, alternatepowertable>
 ---@field totals {key1: table, key2: table, key3: table, key3: table}
 ---@field totals_grupo {key1: table, key2: table, key3: table, key3: table}
@@ -257,7 +259,6 @@
 ---@field GetCombatName fun(combat: combat, bOnlyName: boolean?, bTryFind: boolean?) : string, number?, number?, number?, number? get the name of the combat
 ---@field GetCombatIcon fun(combat: combat) : df_atlasinfo
 ---@field GetTrinketProcsForPlayer fun(self: combat, playerName: string) : table<spellid, trinketprocdata> return a key|value table containing the spellId as key and a table with information about the trinket as value
----@field GetMythicDungeonTrashInfo fun(combat: combat) : mythicdungeontrashinfo
 ---@field IsMythicDungeon fun(combat: combat) : boolean, number return a boolean indicating if the combat is from a mythic+ dungeon, if true, also return the runId
 ---@field GetMythicDungeonInfo fun(combat: combat) : mythicdungeoninfo
 ---@field GetCombatType fun(combat: combat) : number
