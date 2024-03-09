@@ -1,6 +1,6 @@
 
 
-local dversion = 519
+local dversion = 520
 local major, minor = "DetailsFramework-1.0", dversion
 local DF, oldminor = LibStub:NewLibrary(major, minor)
 
@@ -2657,6 +2657,12 @@ function detailsFramework:SetTemplate(frame, template)
 			if (not frame.__has_onleavecolor_script) then
 				frame:HookScript("OnLeave", templateOnLeave)
 			end
+		end
+
+	elseif (frame.SetColorTexture) then
+		if (template.backdropcolor) then
+			local r, g, b, a = detailsFramework:ParseColors(template.backdropcolor)
+			frame:SetColorTexture(r, g, b, a)
 		end
 	end
 

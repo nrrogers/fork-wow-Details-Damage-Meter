@@ -1586,14 +1586,14 @@
 		GameCooltip:SetOption("TextColorRight", Details.tooltip.fontcolor_right)
 		GameCooltip:SetOption("TextShadow", Details.tooltip.fontshadow and "OUTLINE")
 
-		GameCooltip:SetOption("LeftBorderSize", -5)
-		GameCooltip:SetOption("RightBorderSize", 5)
-		GameCooltip:SetOption("RightTextMargin", 0)
-		GameCooltip:SetOption("VerticalOffset", 9)
-		GameCooltip:SetOption("AlignAsBlizzTooltip", true)
-		GameCooltip:SetOption("AlignAsBlizzTooltipFrameHeightOffset", -8)
+		GameCooltip:SetOption("LeftBorderSize", -2) --offset between the left border and the left icon, default: 10 + offset
+		GameCooltip:SetOption("RightBorderSize", 2) --offset between the right border and the right icon, default: -10 + offset
+		GameCooltip:SetOption("VerticalOffset", 5) --amount of space to leave between the top border and the first line of the tooltip, default: 0
+		GameCooltip:SetOption("RightTextMargin", 0) --offset between the right text to the right icon, default: -3
+		GameCooltip:SetOption("AlignAsBlizzTooltip", false)
 		GameCooltip:SetOption("LineHeightSizeOffset", 4)
 		GameCooltip:SetOption("VerticalPadding", -4)
+		GameCooltip:SetOption("YSpacingMod", -6)
 
 		GameCooltip:SetBackdrop(1, Details.cooltip_preset2_backdrop, bgColor, borderColor)
 	end
@@ -1670,6 +1670,7 @@
 				end
 			end
 
+			GameCooltip:ShowRoundedCorner()
 			GameCooltip:ShowCooltip()
 		end
 	end
@@ -1774,6 +1775,12 @@
 		self:RefreshMainWindow(true)
 	end
 
+	function Details:RefreshAllMainWindowsTemp()
+		return Details:RefreshMainWindow(-1)
+	end
+
+	local nextBreakdownUpdateAt = 0
+
 	function Details:RefreshMainWindow(instanceObject, bForceRefresh) --getting deprecated soon
 		if (not instanceObject or type(instanceObject) == "boolean") then
 			bForceRefresh = instanceObject
@@ -1812,7 +1819,14 @@
 					local actorObject = Details:GetActorObjectFromBreakdownWindow()
 					if (actorObject) then
 						if (actorObject and not actorObject.__destroyed) then
-							return actorObject:MontaInfo() --MontaInfo a nil value
+							if (nextBreakdownUpdateAt < GetTime()) then
+								if (Details.in_combat) then
+									nextBreakdownUpdateAt = GetTime() + 0.5
+								else
+									nextBreakdownUpdateAt = GetTime() + 5
+								end
+								return actorObject:MontaInfo()
+							end
 						else
 							Details:Msg("Invalid actor object on breakdown window.")
 							if (actorObject.__destroyed) then
@@ -1843,12 +1857,8 @@
 		if (not panel) then
 			panel = CreateFrame("frame", "DetailsEraseDataConfirmation", UIParent, "BackdropTemplate")
 			panel:SetSize(400, 85)
-			--panel:SetBackdrop({bgFile = [[Interface\AddOns\Details\images\background]], tile = true, tileSize = 16,
-			--edgeFile = [[Interface\AddOns\Details\images\border_2]], edgeSize = 12})
-			--panel:SetBackdropColor(0, 0, 0, 0.4)
 			panel:SetPoint("center", UIParent)
 
-			--DetailsFramework:ApplyStandardBackdrop(panel)
 			DetailsFramework:AddRoundedCornersToFrame(panel, Details.PlayerBreakdown.RoundedCornerPreset)
 
 			local LibWindow = LibStub("LibWindow-1.1")
