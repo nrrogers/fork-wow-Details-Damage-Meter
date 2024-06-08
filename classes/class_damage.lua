@@ -36,7 +36,7 @@
 	local IsInRaid = IsInRaid --api local
 	local IsInGroup = IsInGroup --api local
 
-	local GetSpellInfo = GetSpellInfo --api local
+	local GetSpellInfo = Details222.GetSpellInfo --api local
 	local _GetSpellInfo = Details.getspellinfo --details api
 	local stringReplace = Details.string.replace --details api
 
@@ -2034,7 +2034,7 @@ function damageClass:RefreshWindow(instanceObject, combatObject, bForceUpdate, b
 											this_spell [2] = this_spell [2] + on_player
 											total = total + on_player
 										else
-											error("error - no spell id for DTBS friendly fire " .. spellid)
+											--error("error - no spell id for DTBS friendly fire " .. spellid)
 										end
 									end
 								end
