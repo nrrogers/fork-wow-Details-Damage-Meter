@@ -55,6 +55,7 @@ local IsPassiveSpell = IsPassiveSpell or C_SpellBook.isSpellPassive
 local GetNumSpellTabs = GetNumSpellTabs or C_SpellBook.GetNumSpellBookSkillLines
 local spellBookPlayerEnum = Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player or "player"
 local HasPetSpells = HasPetSpells or C_SpellBook.HasPetSpells
+local GetOverrideSpell = C_SpellBook.GetOverrideSpell or C_Spell.GetOverrideSpell
 
 local isTimewalkWoW = function()
     local _, _, _, buildInfo = GetBuildInfo()
@@ -162,11 +163,13 @@ local getDragonflightTalentsAsIndexTable = function()
                         local definitionId = traitEntryInfo.definitionID
 
                         --definition info
-                        local traitDefinitionInfo = C_Traits.GetDefinitionInfo(definitionId)
-                        local spellId = traitDefinitionInfo.overriddenSpellID or traitDefinitionInfo.spellID
-                        local spellName, _, spellTexture = GetSpellInfo(spellId)
-                        if (spellName) then
-                            allTalents[#allTalents+1] = spellId
+                        if (definitionId) then
+                            local traitDefinitionInfo = C_Traits.GetDefinitionInfo(definitionId)
+                            local spellId = traitDefinitionInfo.overriddenSpellID or traitDefinitionInfo.spellID
+                            local spellName, _, spellTexture = GetSpellInfo(spellId)
+                            if (spellName) then
+                                allTalents[#allTalents+1] = spellId
+                            end
                         end
                     end
                 end
@@ -541,7 +544,7 @@ local getSpellListAsHashTableFromSpellBook = function()
             if (raceId) then
                 if (type(raceId) == "table") then
                     if (raceId[playerRaceId]) then
-                        spellId = C_SpellBook.GetOverrideSpell(spellId)
+                        spellId = GetOverrideSpell(spellId)
                         local spellName = GetSpellInfo(spellId)
                         local bIsPassive = IsPassiveSpell(spellId, "player")
                         if (spellName and not bIsPassive) then
@@ -551,7 +554,7 @@ local getSpellListAsHashTableFromSpellBook = function()
 
                 elseif (type(raceId) == "number") then
                     if (raceId == playerRaceId) then
-                        spellId = C_SpellBook.GetOverrideSpell(spellId)
+                        spellId = GetOverrideSpell(spellId)
                         local spellName = GetSpellInfo(spellId)
                         local bIsPassive = IsPassiveSpell(spellId, "player")
                         if (spellName and not bIsPassive) then
@@ -573,7 +576,7 @@ local getSpellListAsHashTableFromSpellBook = function()
                 local spellType, spellId = GetSpellBookItemInfo(entryOffset, spellBookPlayerEnum)
                 if (spellId) then
                     if (spellType == "SPELL") then
-                        spellId = C_SpellBook.GetOverrideSpell(spellId)
+                        spellId = GetOverrideSpell(spellId)
                         local spellName = GetSpellInfo(spellId)
                         local bIsPassive = IsPassiveSpell(spellId, "player")
                         if LIB_OPEN_RAID_MULTI_OVERRIDE_SPELLS[spellId] then
@@ -597,7 +600,7 @@ local getSpellListAsHashTableFromSpellBook = function()
         local spellType, spellId = GetSpellBookItemInfo(entryOffset, spellBookPlayerEnum)
         if (spellId) then
             if (spellType == "SPELL") then
-                spellId = C_SpellBook.GetOverrideSpell(spellId)
+                spellId = GetOverrideSpell(spellId)
                 local spellName = GetSpellInfo(spellId)
                 local bIsPassive = IsPassiveSpell(spellId, "player")
 
@@ -632,7 +635,7 @@ local getSpellListAsHashTableFromSpellBook = function()
         for i = 1, numPetSpells do
             local spellName, _, unmaskedSpellId = GetSpellBookItemName(i, "pet")
             if (unmaskedSpellId) then
-                unmaskedSpellId = C_SpellBook.GetOverrideSpell(unmaskedSpellId)
+                unmaskedSpellId = GetOverrideSpell(unmaskedSpellId)
                 local bIsPassive = IsPassiveSpell(unmaskedSpellId, "pet")
                 if (spellName and not bIsPassive) then
                     completeListOfSpells[unmaskedSpellId] = true
