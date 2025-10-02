@@ -45,7 +45,7 @@ local sharedMedia = LibStub("LibSharedMedia-3.0")
 ---@class details_allinonewindow_frame_functions : table
 ---@field GetCombat fun(self: details_allinonewindow_frame): combat?
 ---@field GetId fun(self: details_allinonewindow_frame): number return the window ID
----@field IsOpen fun(self: details_allinonewindow_line_dataframe): boolean return if the window is currently open
+---@field IsOpen fun(self: details_allinonewindow_frame): boolean return if the window is currently open
 ---@field GetScrollFrame fun(self: details_allinonewindow_frame): df_scrollbox return the scroll frame from the member ScrollFrame
 ---@field GetSegmentId fun(self: details_allinonewindow_frame): number return the segment ID from the member segmentId
 ---@field SetSegmentId fun(self: details_allinonewindow_frame, segmentId: number, noRefresh: boolean?) set the member segmentId
@@ -57,10 +57,15 @@ local sharedMedia = LibStub("LibSharedMedia-3.0")
 ---@field GetSortKeyTopAndTotal fun(self: details_allinonewindow_frame): string, number, number get the total value from the scroll frame
 ---@field GetSelectedColumnName fun(self: details_allinonewindow_frame): string get the selected column from the settings table
 ---@field SetSelectedColumnName fun(self: details_allinonewindow_frame, key: string) set the selected column in the settings table
+---@field GetDisplay fun(self: details_allinonewindow_frame): number, number for back compatibility, return 'atributo' and 'sub_atributo' members
+---@field SetDisplay fun(self: details_allinonewindow_frame, atributo: number, sub_atributo: number) for back compatibility, set 'atributo' and 'sub_atributo' members
+---@field GetMode fun(self: details_allinonewindow_frame): string for back compatibility, it'll always return 2 (group mode)
 
 ---@class details_allinonewindow_frame : frame, details_allinonewindow_frame_functions
 ---@field windowId number
 ---@field segmentId number
+---@field atributo number back compatibility with old instances, the changes when entering a details_allinonewindow_line_dataframe
+---@field sub_atributo number back compatibility with old instances
 ---@field currentTotal number
 ---@field currentTop number
 ---@field sortKey string
@@ -72,6 +77,23 @@ local sharedMedia = LibStub("LibSharedMedia-3.0")
 ---@field Lines details_allinonewindow_line[]
 ---@field Header details_allinonewindow_headerframe
 ---@field ScrollFrame df_scrollbox the scroll frame where the lines showing player information are displayed
+---@field baseframe frame back compatibility with old instances, this is a frame that will always be hidden and set all points.
+
+---a dataframe is a frame which will have a text to show data, this data can be a damage, healing, interrupts, etc.
+---@class details_allinonewindow_line_dataframe : button
+---@field actorObject actor? the actor used to get the data shown in this dataframe
+---@field actorObjects actor[]
+---@field atributo number back compatibility with old instances, the changes when entering a details_allinonewindow_line
+---@field sub_atributo number back compatibility with old instances
+---@field windowFrame details_allinonewindow_frame
+---@field line details_allinonewindow_line
+---@field Text fontstring the fontstring to show the data
+---@field BackgroundTexture texture a texture placed in the background layer
+---@field onEnterCallback fun(self: details_allinonewindow_line_dataframe, actorObjects: actor[], windowFrame: details_allinonewindow_frame, line: details_allinonewindow_line) function to run when the mouse enter the frame, it is set using SetOnEnterCallback
+---@field SetOnEnterCallback fun(self: details_allinonewindow_line_dataframe, func: fun(self: details_allinonewindow_line_dataframe, actorObjects: actor[], windowFrame: details_allinonewindow_frame, line: details_allinonewindow_line)) set the function to run when the mouse enter the frame, the function receives as self the dataframe, and has access to actorObjects, windowFrame and line members
+---@field GetActor fun(self: details_allinonewindow_line_dataframe): actor? return the actor used to get the data shown in this dataframe
+---@field SetDisplay fun(self: details_allinonewindow_line_dataframe, atributo: number, sub_atributo: number) set the atributo and sub_atributo members in the windowFrame, used for back compatibility when opening the breakdown window
+---@field GetDisplay fun(self: details_allinonewindow_line_dataframe): number, number return the atributo and sub_atributo members in the windowFrame, used for back compatibility when opening the breakdown window
 
 ---@class details_allinonewindow_line : button, df_headerfunctions
 ---@field index number
@@ -96,16 +118,15 @@ local sharedMedia = LibStub("LibSharedMedia-3.0")
 ---@class details_allinonewindow_line_statusbar_iconbutton : button
 ---@field Text fontstring
 ---@field Texture texture
+---@field BackgroundTexture texture
+---@field SetOnEnterCallback fun(self: details_allinonewindow_line_dataframe, func: fun(self: details_allinonewindow_line_dataframe), actorObjects: actor[], windowFrame: details_allinonewindow_frame, line: details_allinonewindow_line) set the function to run when the mouse enter the frame, the function receives as self the dataframe, and has access to actorObjects, windowFrame and line members
+---@field GetActor fun(self: details_allinonewindow_line_dataframe): actor? return the actor used to get the data shown in this dataframe
+---@field SetDisplay fun(self: details_allinonewindow_line_dataframe, atributo: number, sub_atributo: number) set the atributo and sub_atributo members in the windowFrame, used for back compatibility when opening the breakdown window
+---@field GetDisplay fun(self: details_allinonewindow_line_dataframe): number, number return the atributo and sub_atributo members in the windowFrame, used for back compatibility when opening the breakdown window
 
 ---@class details_allinonewindow_line_statusbar_expandbutton : button
 ---@field isExpanded boolean
 ---@field Texture texture this texture is usualy an arrow down or up
-
----a dataframe is a frame which will have a text to show data, this data can be a damage, healing, interrupts, etc.
----@class details_allinonewindow_line_dataframe : button
----@field onEnterCallback fun(self: details_allinonewindow_line_dataframe) function to run when the mouse enter the frame, it is set using SetOnEnterCallback
----@field Text fontstring the fontstring to show the data
----@field SetOnEnterCallback fun(self: details_allinonewindow_line_dataframe, func: fun(self: details_allinonewindow_line_dataframe)) set a function to run when the mouse enter the frame
 
 --declaring the classes for the settings table
 ---@class details_allinonewindow_settings : table
@@ -126,6 +147,7 @@ local sharedMedia = LibStub("LibSharedMedia-3.0")
 ---@field column_width table<string, number> column name and its width
 ---@field column_show_text table<string, boolean> true to show the text in the column in the header, false to hide it
 ---@field column_show_icon table<string, boolean> true to show the icon in the column in the header, false to hide it
+---@field column_selected_color number[] this is the background color of the column frames when its header is selected
 
 ---@class details_allinonewindow_settings_window : table
 ---@field position table
@@ -191,6 +213,7 @@ local defaultSettings = {
         column_show_text = {},
         column_show_icon = {},
         background_color = {.2, .2, .2, 0.834},
+        column_selected_color = {.3, .3, .3, 0.2},
     },
     window = {
         position = {},
@@ -366,6 +389,29 @@ local windowFunctionsMixin = {
     end,
     SetSelectedColumnName = function(self, key)
         self.settings.header.column_selected = key
+    end,
+
+    ---for back compatibility, return atributo and sub_atributo members
+    ---@param self details_allinonewindow_frame
+    ---@return number atributo
+    ---@return number sub_atributo
+    GetDisplay = function(self)
+        return self.atributo, self.sub_atributo
+    end,
+
+    ---@param self details_allinonewindow_frame
+    ---@param atributo number
+    ---@param sub_atributo number
+    SetDisplay = function(self, atributo, sub_atributo)
+        self.atributo = atributo
+        self.sub_atributo = sub_atributo
+    end,
+
+    ---for back compatibility, it'll always return 2 (group mode)
+    ---@param self details_allinonewindow_frame
+    ---@return number modeId
+    GetMode = function(self)
+        return 2
     end,
 }
 
@@ -583,6 +629,10 @@ local windowScrollRefreshFunc = function(self, data, offset, totalLines) --~refr
 
     local key, top, total = windowFrame:GetSortKeyTopAndTotal()
 
+    --get the selected --column_selected_color
+    --local columnIndex, order, columnName = headerFrame:GetSelectedColumn()
+
+
     for i = 1, totalLines do
     	local index = i + offset
         ---@type string
@@ -610,14 +660,25 @@ local windowScrollRefreshFunc = function(self, data, offset, totalLines) --~refr
                     local headerColumnFrame = line:GetFrameForData(headerIndex)
                     local result = AllInOneWindow:RefreshColumn(index, windowFrame, line, headerColumnFrame, containers, headerName, playerName, combatObject, actorObjects)
 
+                    if (AllInOneWindow.TooltipScripts[headerName]) then
+                        headerColumnFrame:SetOnEnterCallback(AllInOneWindow.TooltipScripts[headerName], actorObjects, windowFrame, line)
+                    else
+                        headerColumnFrame:SetOnEnterCallback(nil)
+                    end
+
                     local columnData = AllInOneWindow:GetColumnData(headerName)
                     headerColumnFrame:SetSize(columnData.width - 2, line:GetHeight() - 2)
+                    headerColumnFrame:SetDisplay(columnData.attribute, columnData.subAttribute)
 
                     line:AddFrameToHeaderAlignment(headerColumnFrame)
 
-                    if (key == headerName) then
+                    if (key == headerName) then --this is the selected header
                         statusBar:SetMinMaxValues(0, top)
                         statusBar:SetValue(result)
+
+                        headerColumnFrame.BackgroundTexture:SetVertexColor(unpack(windowFrame.settings.header.column_selected_color))
+                    else
+                        headerColumnFrame.BackgroundTexture:SetVertexColor(0, 0, 0, 0)
                     end
 
                     if (headerName == "rank" or headerName == "pname") then
@@ -647,14 +708,12 @@ end
 
 --functions to run when the mouse enter a line or leave
 local windowLineOnEnter = function(line)
-    GameCooltip:Preset(2)
-    GameCooltip:SetOwner(line)
-    GameCooltip:AddLine("Entered Line " .. line.index)
-    GameCooltip:Show()
+
 end
 local windowLineOnLeave = function(line)
-    GameCooltip:Hide()
+
 end
+
 --functions to run when the line receives a mouse down and mouse up event
 local windowLineOnMouseDown = function(line, button)
     --print("mouse down on line", line.index, button)
@@ -694,21 +753,67 @@ local getStatusBar = function(self)
 end
 
 --data frame functions (data frame are the frames used to show data in each column of a line (e.g. damage, healing, etc), each line has multiple data frames)
----@type fun(self: details_allinonewindow_line_dataframe, func: fun(self: details_allinonewindow_line_dataframe))
-local setDataFrameOnEnterCallbackFunction = function(self, func)
+---@param self details_allinonewindow_line_dataframe
+---@param func fun(self: details_allinonewindow_line_dataframe, func: fun(self: details_allinonewindow_line_dataframe))
+---@param actorObjects actor[]
+---@param windowFrame details_allinonewindow_frame
+---@param line details_allinonewindow_line
+local setDataFrameOnEnterCallbackFunction = function(self, func, actorObjects, windowFrame, line)
     self.onEnterCallback = func
+    if (func) then
+        self.actorObjects = actorObjects
+        self.windowFrame = windowFrame
+        self.line = line
+    else
+        self.actorObjects = nil
+        self.windowFrame = nil
+        self.line = nil
+    end
+
+    windowLineOnEnter(self:GetParent())
 end
----@type fun(self: details_allinonewindow_line_dataframe)
+
+---@param self details_allinonewindow_line_dataframe
+---@param atributo number
+---@param sub_atributo number
+local setDataFrameDisplayFunction = function(self, atributo, sub_atributo)
+    self.atributo = atributo
+    self.sub_atributo = sub_atributo
+end
+
+---@param self details_allinonewindow_line_dataframe
+---@return number, number
+local getDataFrameDisplayFunction = function(self)
+    return self.atributo, self.sub_atributo
+end
+
+---@param self details_allinonewindow_line_dataframe
+---@param button string
+local onClickDataFrameFunction = function(self, button)
+    --OpenBreakdownWindow() will call GetDisplay on the windowFrame, so we need to set there the 'atributo' and 'sub_atributo' members
+    self.windowFrame:SetDisplay(self:GetDisplay())
+    Details:OpenBreakdownWindow(self.windowFrame, self:GetActor())
+end
+
+---@param self details_allinonewindow_line_dataframe
+---@return actor?
+local getDataFrameActor = function(self)
+    return self.actorObject
+end
+
+---@param self details_allinonewindow_line_dataframe
 local onEnterDataFrameFunction = function(self)
     self.Text:SetTextColor(1, 1, 0, 1)
 
     if (self.onEnterCallback) then
-        self.onEnterCallback(self)
+        self.onEnterCallback(self, self.actorObjects, self.windowFrame, self.line)
     end
 end
+
 ---@type fun(self: details_allinonewindow_line_dataframe)
 local onLeaveDataFrameFunction = function(self)
     self.Text:SetTextColor(1, 1, 1, 1)
+    GameCooltip:Hide()
 end
 
 ---@param scrollFrame df_scrollbox
@@ -789,6 +894,10 @@ local createLineForWindow = function(scrollFrame, lineId) --~line
     playerIconFrame:SetScript("OnEnter", onEnterPlayerIconFrame)
     playerIconFrame:SetScript("OnLeave", onLeavePlayerIconFrame)
     playerIconFrame:SetScript("OnClick", onClickPlayerIconFrame)
+    playerIconFrame.SetOnEnterCallback = setDataFrameOnEnterCallbackFunction
+    playerIconFrame.GetActor = getDataFrameActor
+    playerIconFrame.SetDisplay = setDataFrameDisplayFunction
+    playerIconFrame.GetDisplay = getDataFrameDisplayFunction
     statusBar.PlayerIconFrame = playerIconFrame
 
     --the text to show the data, if the icon isn't shown
@@ -798,6 +907,11 @@ local createLineForWindow = function(scrollFrame, lineId) --~line
     playerIconFrame.Text:SetTextColor(1, 1, 1, 1)
     playerIconFrame.Text:SetNonSpaceWrap(true)
     playerIconFrame.Text:SetWordWrap(false)
+
+    --create a background texture
+    playerIconFrame.BackgroundTexture = playerIconFrame:CreateTexture("$parentBackground", "background")
+    playerIconFrame.BackgroundTexture:SetAllPoints()
+    playerIconFrame.BackgroundTexture:SetColorTexture(1, 1, 1, 0)
 
     --the icon to show the class or spec icon, it's size only require a width
     ---@type texture
@@ -828,26 +942,38 @@ local createLineForWindow = function(scrollFrame, lineId) --~line
     --create data frames to hold information for each column
     for columnId = 1, maxColumns do
         ---@type details_allinonewindow_line_dataframe
-        local frame = CreateFrame("button", "$parentFrameForData" .. columnId, line)
+        local headerColumnFrame = CreateFrame("button", "$parentFrameForData" .. columnId, line)
+        headerColumnFrame.windowFrame = windowFrame
         --the size of the frame will be set later to follow the header width
 
-        frame.SetOnEnterCallback = setDataFrameOnEnterCallbackFunction
-        frame:SetScript("OnEnter", onEnterDataFrameFunction)
-        frame:SetScript("OnLeave", onLeaveDataFrameFunction)
-        line.FramesForData[#line.FramesForData+1] = frame
+        --create a background texture
+        local backgroundTexture = headerColumnFrame:CreateTexture("$parentBackground", "background")
+        backgroundTexture:SetAllPoints()
+        backgroundTexture:SetColorTexture(1, 1, 1)
+        headerColumnFrame.BackgroundTexture = backgroundTexture
 
-        frame:SetPropagateMouseMotion(true) --let the mouse motion propagate to the line
-        frame:SetPropagateMouseClicks(true) --let the click propagate to the line
+        headerColumnFrame.SetOnEnterCallback = setDataFrameOnEnterCallbackFunction
+        headerColumnFrame.GetActor = getDataFrameActor
+        headerColumnFrame.SetDisplay = setDataFrameDisplayFunction
+        headerColumnFrame.GetDisplay = getDataFrameDisplayFunction
+
+        headerColumnFrame:SetScript("OnClick", onClickDataFrameFunction)
+        headerColumnFrame:SetScript("OnEnter", onEnterDataFrameFunction)
+        headerColumnFrame:SetScript("OnLeave", onLeaveDataFrameFunction)
+        line.FramesForData[#line.FramesForData+1] = headerColumnFrame
+
+        headerColumnFrame:SetPropagateMouseMotion(true) --let the mouse motion propagate to the line
+        headerColumnFrame:SetPropagateMouseClicks(true) --let the click propagate to the line
 
         --the text to show the data
-        local text = frame:CreateFontString("$parentText", "overlay", "GameFontHighlightSmall")
-        text:SetPoint("left", frame, "left", 2, 0)
+        local text = headerColumnFrame:CreateFontString("$parentText", "overlay", "GameFontHighlightSmall")
+        text:SetPoint("left", headerColumnFrame, "left", 2, 0)
         text:SetJustifyH("left")
         text:SetTextColor(1, 1, 1, 1)
         text:SetNonSpaceWrap(true)
         text:SetWordWrap(false)
 
-        frame.Text = text
+        headerColumnFrame.Text = text
     end
 
     return line
@@ -886,6 +1012,10 @@ function AllInOneWindow:CreateWindowFrame() --~create
     local windowFrame = CreateFrame("Frame", "DetailsAllInOneWindow" .. windowId, UIParent, "BackdropTemplate")
     detailsFramework:Mixin(windowFrame, windowFunctionsMixin)
     windowFrame.windowId = windowId
+
+    windowFrame.baseframe = CreateFrame("Frame", "$parentBaseFrame", windowFrame)
+    windowFrame.baseframe:SetAllPoints()
+    windowFrame.baseframe:Hide()
 
     windowFrame:SetSortKeyTopAndTotal("dmg", 0.1, 0.1) --avoid division by zero
 

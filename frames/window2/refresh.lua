@@ -259,6 +259,10 @@ function AllInOneWindow:RefreshHeader(windowFrame) --~header
     windowFrame:SetWidth(headerWidth + 4) --+4 for the border
 end
 
+local getAnyActor = function(actorObjects)
+    return actorObjects[DETAILS_ATTRIBUTE_DAMAGE] or actorObjects[DETAILS_ATTRIBUTE_HEAL] or actorObjects[DETAILS_ATTRIBUTE_ENERGY] or actorObjects[DETAILS_ATTRIBUTE_MISC]
+end
+
 ---@param self details_allinonewindow
 ---@param index number
 ---@param windowFrame details_allinonewindow_frame
@@ -272,15 +276,19 @@ end
 function AllInOneWindow:RefreshColumn(index, windowFrame, line, headerColumnFrame, containers, headerName, playerName, combatObject, actorObjects)
     local combatTime = combatObject:GetCombatTime()
     if (headerColumnFrame) then
+        headerColumnFrame.actorObject = nil
+
         if (headerName == "icon") then
-            local damageActor = actorObjects[DETAILS_ATTRIBUTE_DAMAGE]
-            local actorSpec = damageActor.spec
-            if (actorSpec and actorSpec ~= 0) then
-                local useAlpha = false
-                local texture, left, right, top, bottom = Details:GetSpecIcon(actorSpec, useAlpha)
-                line.PlayerIconTexture:SetTexture(texture)
-                line.PlayerIconTexture:SetTexCoord(left, right, top, bottom)
-                line.PlayerIconTexture:Show()
+            local anyActor = getAnyActor(actorObjects)
+            if (anyActor) then
+                local actorSpec = anyActor.spec
+                if (actorSpec and actorSpec ~= 0) then
+                    local useAlpha = false
+                    local texture, left, right, top, bottom = Details:GetSpecIcon(actorSpec, useAlpha)
+                    line.PlayerIconTexture:SetTexture(texture)
+                    line.PlayerIconTexture:SetTexCoord(left, right, top, bottom)
+                    line.PlayerIconTexture:Show()
+                end
             end
             return 1
 
@@ -295,6 +303,7 @@ function AllInOneWindow:RefreshColumn(index, windowFrame, line, headerColumnFram
         elseif (headerName == "dmg") then
             local damageActor = actorObjects[DETAILS_ATTRIBUTE_DAMAGE]
             if damageActor then
+                headerColumnFrame.actorObject = damageActor
                 headerColumnFrame.Text:SetText(Details:Format(damageActor.total))
                 return damageActor.total
             else
@@ -305,6 +314,7 @@ function AllInOneWindow:RefreshColumn(index, windowFrame, line, headerColumnFram
         elseif (headerName == "dps") then
             local damageActor = actorObjects[DETAILS_ATTRIBUTE_DAMAGE]
             if damageActor then
+                headerColumnFrame.actorObject = damageActor
                 headerColumnFrame.Text:SetText(Details:Format(damageActor.total / combatTime))
                 return damageActor.total / combatTime
             else
@@ -315,6 +325,7 @@ function AllInOneWindow:RefreshColumn(index, windowFrame, line, headerColumnFram
         elseif (headerName == "dmgdps") then
             local damageActor = actorObjects[DETAILS_ATTRIBUTE_DAMAGE]
             if damageActor then
+                headerColumnFrame.actorObject = damageActor
                 headerColumnFrame.Text:SetText(Details:Format(damageActor.total) .. " / " .. Details:Format(damageActor.total / combatTime))
                 return damageActor.total
             else
@@ -326,6 +337,7 @@ function AllInOneWindow:RefreshColumn(index, windowFrame, line, headerColumnFram
         elseif (headerName == "heal") then
             local healActor = actorObjects[DETAILS_ATTRIBUTE_HEAL]
             if (healActor) then
+                headerColumnFrame.actorObject = healActor
                 headerColumnFrame.Text:SetText(Details:Format(healActor.total))
                 return healActor.total
             else
@@ -336,6 +348,7 @@ function AllInOneWindow:RefreshColumn(index, windowFrame, line, headerColumnFram
         elseif (headerName == "hps") then
             local healActor = actorObjects[DETAILS_ATTRIBUTE_HEAL]
             if (healActor) then
+                headerColumnFrame.actorObject = healActor
                 headerColumnFrame.Text:SetText(Details:Format(healActor.total / combatTime))
                 return healActor.total / combatTime
             else
@@ -346,6 +359,7 @@ function AllInOneWindow:RefreshColumn(index, windowFrame, line, headerColumnFram
         elseif (headerName == "healhps") then
             local healActor = actorObjects[DETAILS_ATTRIBUTE_HEAL]
             if (healActor) then
+                headerColumnFrame.actorObject = healActor
                 headerColumnFrame.Text:SetText(Details:Format(healActor.total) .. " / " .. Details:Format(healActor.total / combatTime))
                 return healActor.total
             else
@@ -366,6 +380,7 @@ function AllInOneWindow:RefreshColumn(index, windowFrame, line, headerColumnFram
             local utilityActor = actorObjects[DETAILS_ATTRIBUTE_MISC]
             if (utilityActor) then
                 headerColumnFrame.Text:SetText(math.floor(utilityActor.interrupt or 0))
+                headerColumnFrame.actorObject = utilityActor
                 return utilityActor.interrupt or 0
             else
                 headerColumnFrame.Text:SetText("0")
@@ -377,6 +392,7 @@ function AllInOneWindow:RefreshColumn(index, windowFrame, line, headerColumnFram
             local utilityActor = actorObjects[DETAILS_ATTRIBUTE_MISC]
             if (utilityActor) then
                 headerColumnFrame.Text:SetText(math.floor(utilityActor.dispell or 0))
+                headerColumnFrame.actorObject = utilityActor
                 return utilityActor.dispell or 0
             else
                 headerColumnFrame.Text:SetText("0")
