@@ -154,6 +154,7 @@ local sharedMedia = LibStub("LibSharedMedia-3.0")
 ---@field column_selected_color number[] this is the background color of the column frames when its header is selected
 
 ---@class details_allinonewindow_settings_window : table
+---@field is_open boolean
 ---@field position table
 ---@field width number
 ---@field height number
@@ -231,6 +232,7 @@ local defaultSettings = {
         clickthrough_incombatonly = true, --when enabled, the clickthrough is only active when in combat
         locked = false, --when disabled, resizers are not shown and the window is locked
         header_ontop = true, --the header is on top of the window
+        is_open = true, --whether the window is open or closed
     },
 
     lines = {
@@ -257,7 +259,7 @@ local defaultSettings = {
         totalbar_color = {.3, .3, .3, 0.834},
 
         text_color = {1, 1, 1, 0.823}, --the text color used in the lines
-        text_size = 11, --the text size used in the lines
+        text_size = 13, --the text size used in the lines
         text_x_offset = 0, --the text horizontal offset, used to align the text with the statusbar
         text_y_offset = 0, --the text vertical offset, used to align the text with the statusbar
         text_centered = false,
@@ -287,7 +289,10 @@ function Details222.AllInOneWindow:Initialize()
     local windowCount = #windowSetting
     --this will open all windows created
     for i = 1, windowCount do
-        AllInOneWindow:OpenWindow(i)
+        --need to check if this window was opened on the last session
+        if (windowSetting[i].window.is_open) then
+            AllInOneWindow:OpenWindow(i)
+        end
     end
 end
 
@@ -437,7 +442,12 @@ local windowFunctionsMixin = {
         if (Details:IsBreakdownWindowOpen()) then
             Details:GetActorObjectFromBreakdownWindow():MontaInfo()
         end
-    end
+    end,
+
+    SetSegmentFromCooltip = function(_, instance, segmentId, bForceChange) --back compatibility with old instances
+        ---@cast instance details_allinonewindow_frame
+        return instance:SetSegmentId(segmentId, bForceChange)
+    end,
 }
 
 ---@param self details_allinonewindow
@@ -498,6 +508,7 @@ function AllInOneWindow:CloseWindow(windowId)
     local windowFrame = self.WindowFrames[windowId]
     if (windowFrame) then
         windowFrame:Hide()
+        windowFrame.settings.window.is_open = false
     end
 end
 
@@ -570,6 +581,8 @@ function AllInOneWindow:OpenWindow(windowId) --~open õpen
             self:RefreshWindow(windowFrame)
         end
     end)
+
+    windowFrame.settings.window.is_open = true
 end
 
 function Details:OpenAllInOneWindow(windowId)
@@ -1102,6 +1115,18 @@ function AllInOneWindow:CreateWindowFrame() --~create
     optionsButton:SetFrameLevel(windowFrame:GetFrameLevel()+2)
     optionsButton:SetScript("OnClick", function()
         AllInOneWindow:OpenOptionsPanel(windowFrame)
+    end)
+
+    local selectCombatButton = CreateFrame("button", "$parentSelectCombatButton", windowFrame)
+    selectCombatButton:SetSize(14, 14)
+    selectCombatButton:SetPoint("left", optionsButton, "right", 2, 0)
+    selectCombatButton.Icon = selectCombatButton:CreateTexture("$parentIcon", "artwork")
+    selectCombatButton.Icon:SetPoint("center", selectCombatButton, "center", 0, 0)
+    selectCombatButton.Icon:SetSize(selectCombatButton:GetSize())
+    selectCombatButton.Icon:SetTexture([[Interface\BUTTONS\UI-GuildButton-PublicNote-Up]])
+    selectCombatButton:SetFrameLevel(windowFrame:GetFrameLevel()+2)
+    selectCombatButton:SetScript("OnClick", function()
+        Details.BuildSegmentMenu(selectCombatButton, 1, windowFrame)
     end)
 
     local scrollWidth = 2
