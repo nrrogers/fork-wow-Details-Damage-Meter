@@ -574,14 +574,17 @@ function commHandler.SendData(encodedString, commChannel)
     end
 
     if (commHandler.hasAceComm) then
-        if not encodedString or type(encodedString) ~= "string" then
-            scream("invalid encodedString 0x5445.", encodedString)
+        --double check if can send comm
+        if not commHandler.CanSendComm() then
+            return
         end
-        if not commChannel or type(commChannel) ~= "string" then
-            scream("invalid commChannel 0x5446.", commChannel)
-        end
+
         local result = commHandler.aceComm:SendCommMessage(CONST_COMM_PREFIX, encodedString, commChannel)
     else
+        --double check if can send comm
+        if not commHandler.CanSendComm() then
+            return
+        end
         ---@diagnostic disable-next-line: undefined-field
         C_ChatInfo.SendAddonMessage(CONST_COMM_PREFIX, encodedString, commChannel)
     end
