@@ -18,7 +18,7 @@ local debugMode = false
 
 local printDebug = function(...)
     if debugMode then
-        print("|cFFFFFF22", ...)
+        print("|cFFFFFF22Details!Debug:", ...)
     end
 end
 
@@ -270,17 +270,6 @@ local doUpdate = function()
     --Details:InstanceCallDetailsFunc(Details.AtualizaSoloMode_AfertReset)
     --Details:InstanceCallDetailsFunc(Details.ResetaGump)
     Details:RefreshMainWindow(-1, true)
-
-    --[=[
-    local isshowning = 0
-    local children = {DetailsRowFrame1:GetChildren()}
-    for i = 1, #children do
-        local line = children[i]
-        if line:IsShown() then
-            isshowning = isshowning + 1
-        end
-    end
-    --]=]
 end
 
 local scheduledUpdateObject
@@ -299,9 +288,9 @@ local startWaitSecretDropTimer = function()
             --local stateChallengeMode = C_RestrictedActions.GetAddOnRestrictionState(Enum.AddOnRestrictionType.ChallengeMode)
             if stateCombat == 0 and stateEncounter == 0 then -- and stateChallengeMode == 0
                 if not InCombatLockdown() then
-                    L.ParseSegments()
                     timerObject:Cancel()
                     waitSecretDropTimer = nil
+                    L.ParseSegments()
                 end
             end
         end)
@@ -334,6 +323,7 @@ local addSegment = function(parameterType, session, bIsUpdate)
 
     if issecretvalue((damageActorList and damageActorList[1] and damageActorList[1].name) or "") then
         --it is in secret lockdown, start a timer to wait until the lockdown drop
+        printDebug("combat dropped but secret lockdown detected.")
         startWaitSecretDropTimer()
         return
     end
@@ -966,8 +956,6 @@ function bParser.ShowTooltip_Hook(instanceLine, mouse)
     tooltip:SetMaxAmount(maxAmount)
     tooltip:SetHeight(spellAmount * (tooltipLineHeight+1) + 4)
 
-
-
     ---@type addonapoc_tooltipdata[]
     local tooltipData = {}
 
@@ -1284,6 +1272,7 @@ local updateWindow = function(instance) --~update
                     ---@field locale string?
                     ---@field config table?
 
+                    actorName = UnitName(actorName)
                     instanceLine.lineText11:SetText(actorName) --left text
 
                     if instance.use_multi_fontstrings then
