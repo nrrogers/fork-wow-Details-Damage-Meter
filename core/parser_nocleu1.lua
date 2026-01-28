@@ -333,12 +333,25 @@ local getSourceSpells = function(sessionType, sessionID, damageMeterType, source
     return {maxAmount = 0, combatSpells = {}}
 end
 
+---@param instance instance
+local doTrick = function(instance) --~trick
+    local mainDisplay, subDisplay = instance:GetDisplay()
+    local segmentId = nil
+    local modeId = nil
+    local quick = true
+    if (mainDisplay == DETAILS_ATTRIBUTE_DAMAGE) then
+        instance:SetDisplay(segmentId, DETAILS_ATTRIBUTE_HEAL, DETAILS_SUBATTRIBUTE_HEALDONE, modeId, quick)
+        instance:SetDisplay(segmentId, DETAILS_ATTRIBUTE_DAMAGE, subDisplay, modeId, quick)
+    elseif (mainDisplay == DETAILS_ATTRIBUTE_HEAL) then
+        instance:SetDisplay(segmentId, DETAILS_ATTRIBUTE_DAMAGE, DETAILS_SUBATTRIBUTE_DAMAGEDONE, modeId, quick)
+        instance:SetDisplay(segmentId, DETAILS_ATTRIBUTE_HEAL, subDisplay, modeId, quick)
+    end
+end
+
 local doUpdate = function()
-    --Details:InstanceCallDetailsFunc(Details.FadeHandler.Fader, "IN", nil, "barras")
     Details:InstanceCallDetailsFunc(Details.UpdateCombatObjectInUse)
-    --Details:InstanceCallDetailsFunc(Details.AtualizaSoloMode_AfertReset)
-    --Details:InstanceCallDetailsFunc(Details.ResetaGump)
     Details:RefreshMainWindow(-1, true)
+    Details:InstanceCall(doTrick)
 end
 
 local scheduledUpdateObject
@@ -780,8 +793,6 @@ local parseSegments = function()
         return a.sessionId < b.sessionId
     end)
 
-    --when it adds a segment, it is not adding the second one after
-
     for i = 1, #sessions do
         local session = sessions[i].session
         local sessionId = sessions[i].sessionId
@@ -802,27 +813,6 @@ local parseSegments = function()
             end
         end
     end
-
-    --[=[
-    if sessionIdAtArenaStart ~= 0 then
-        --get all details segments
-        local combatSegments = Details:GetCombatSegments()
-        for i = 1, #combatSegments do
-            local thisSegment = combatSegments[i]
-            if thisSegment.secretArena and thisSegment.combatSessionId and thisSegment.combatSessionId == sessionIdAtArenaStart then
-                for j = i-1, 1, -1 do
-                    local nextSegment = combatSegments[j]
-                    if nextSegment and nextSegment.secretArena and nextSegment.combatSessionId and nextSegment.combatSessionId > sessionIdAtArenaStart then
-                        
-                        
-                    end
-                end
-            end
-        end
-
-        sessionIdAtArenaStart = 0
-    end
-    --]=]
 
     if needUpdate then
         if not scheduledUpdateObject then
@@ -1217,27 +1207,13 @@ end)
 ---@field GetAllLines fun(self:details):frame[]
 
 ---hide all lines in the instance and clearup the secret strings
-local clearWindow = function(instance)
+local clearLineSecrets = function(instance)
     ---@type detailsline[]
     local allInstanceLines = instance.barras --instance:GetAllLines()
 
     --cleanup all bars
     for i = 1, #allInstanceLines do
         local instanceLine = allInstanceLines[i]
-        --instanceLine:Hide()
-        --set the text to empty string
-        --instanceLine.lineText1:SetText("")
-        --instanceLine.lineText2:SetText("")
-        --instanceLine.lineText3:SetText("")
-        --instanceLine.lineText4:SetText("")
-        --instanceLine.statusbar:SetMinMaxValues(0, 1)
-        --instanceLine.statusbar:SetValue(0)
-
-        --instanceLine.lineText11:SetText("")
-        --instanceLine.lineText12:SetText("")
-        --instanceLine.lineText13:SetText("")
-        --instanceLine.lineText14:SetText("")
-
         instanceLine.secret_SourceGUID = nil
         instanceLine.secret_SourceName = nil
     end
@@ -1325,9 +1301,11 @@ local abbreviateSettingsDPS
 if CreateAbbreviateConfig then
     abbreviateSettingsDamage = CreateAbbreviateConfig(abbreviateOptionsDamage)
     abbreviateSettingsDamage = {config = abbreviateSettingsDamage}
+    Details.abbreviateOptionsDamage = abbreviateSettingsDamage
 
     abbreviateSettingsDPS = CreateAbbreviateConfig(abbreviateOptionsDPS)
     abbreviateSettingsDPS = {config = abbreviateSettingsDPS}
+    Details.abbreviateOptionsDPS = abbreviateSettingsDPS
 end
 
 local tt = GetTime()
@@ -1434,7 +1412,7 @@ local updateWindow = function(instance) --~update
             for i = 1, amountOfSources do
                 ---@type detailsline
                 local instanceLine = allInstanceLines[i]
-                if (instanceLine) then --~refresh
+                if (instanceLine) then
                     ---@type damagemeter_combat_source
                     local source = combatSources[i]
                     local updateStatusbarColor = true
@@ -1471,49 +1449,14 @@ local updateWindow = function(instance) --~update
                         end)
                     else
                         actorName = UnitName(actorName)
-                    end
+                    end --~refresh
 
                     instanceLine.lineText1:SetText(actorName) --left text
                     --instanceLine.lineText11:SetText(actorName) --left text
 
-                    if instance.use_multi_fontstrings then
-                        --instanceLine.lineText12:SetText("") --left right text
-                        instanceLine.lineText2:SetText("") --left right text
-                        --instanceLine.lineText13:SetText(AbbreviateNumbers(value, abbreviateSettingsDamage)) --middle right text
-                        instanceLine.lineText3:SetText(AbbreviateNumbers(value, abbreviateSettingsDamage)) --middle right text
-
-                        local abbrv = AbbreviateNumbers(totalAmountPerSecond, abbreviateSettingsDPS)
-                        instanceLine.lineText4:SetText(abbrv) --format("%.1f", abbrv) --right right text
-                        --instanceLine.lineText14:SetText(abbrv) --format("%.1f", abbrv) --right right text
-                    else
-                        --barsShowData
-                        local formattedTotal = ""
-                        local formattedDPS = ""
-                        local formattedPercent = ""
-
-                        if (barsShowData[1] and barsShowData[2]) then --total and dps
-                            formattedTotal = AbbreviateNumbers(value, abbreviateSettingsDamage)
-                            formattedDPS = AbbreviateNumbers(totalAmountPerSecond, abbreviateSettingsDPS)
-                            local rightText = format("%s %s%s%s", formattedTotal, barsBrackets[1], formattedDPS, barsBrackets[2])
-                            --instanceLine.lineText14:SetText(rightText)
-                            instanceLine.lineText4:SetText(rightText)
-
-                        elseif (barsShowData[2]) then --only total
-                            formattedTotal = AbbreviateNumbers(value, abbreviateSettingsDamage)
-                            --instanceLine.lineText14:SetText(formattedTotal)
-                            instanceLine.lineText4:SetText(formattedTotal)
-
-                        elseif (barsShowData[3]) then --only dps
-                            formattedDPS = AbbreviateNumbers(totalAmountPerSecond, abbreviateSettingsDPS)
-                            --instanceLine.lineText14:SetText(formattedDPS)
-                            instanceLine.lineText4:SetText(formattedDPS)
-                        end
-
-                        --percent not available now
-                    end
-
-                    --instanceLine.lineText13:SetText(value)
-                    --instanceLine.lineText14:SetText(totalAmountPerSecond)
+                    local perCent = nil
+                    local ruleToUse = 2 --total dps
+                    Details:SimpleFormat(instanceLine.lineText2, instanceLine.lineText3, instanceLine.lineText4, AbbreviateNumbers(value, abbreviateSettingsDamage), AbbreviateNumbers(totalAmountPerSecond, abbreviateSettingsDPS), perCent, ruleToUse)
 
                     instanceLine.statusbar:SetMinMaxValues(0, topValue, Enum.StatusBarInterpolation.ExponentialEaseOut)
                     instanceLine.statusbar:SetValue(value, Enum.StatusBarInterpolation.ExponentialEaseOut)
@@ -1625,11 +1568,13 @@ local timerUpdateInterval = 1 --time in seconds
 local timerUpdateObject = nil
 local updateTime = function(timerObject)
     local instance = timerObject.instance
-    local timeString = instance:GetFormattedTimeForTitleBar()
-    if instance:GetSegmentId() ~= DETAILS_SEGMENTID_OVERALL then
-        local attributeText = instance:GetInstanceAttributeText() --this return 'damage done'
-        timeString = timeString .. " " .. attributeText
-        instance:SetTitleBarText(timeString)
+    if instance.attribute_text.show_timer then
+        local timeString = instance:GetFormattedTimeForTitleBar()
+        if instance:GetSegmentId() ~= DETAILS_SEGMENTID_OVERALL then
+            local attributeText = instance:GetInstanceAttributeText() --this return 'damage done'
+            timeString = timeString .. " " .. attributeText
+            instance:SetTitleBarText(timeString)
+        end
     end
 end
 
@@ -1667,12 +1612,10 @@ local startUpdater = function()
 end
 
 local stopUpdaterAndClearWindow = function()
-    --bParser.UnmakeAsOverlay()
-
     if (updaterTicker) then
         updaterTicker:Cancel()
         updaterTicker = nil
-        Details:InstanceCall(clearWindow)
+        Details:InstanceCall(clearLineSecrets)
     end
 
     if (timerUpdateObject) then
