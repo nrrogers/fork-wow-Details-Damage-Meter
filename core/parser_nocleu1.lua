@@ -24,10 +24,14 @@ local printDebug = function(...)
     end
 end
 
+
 local CONST_MAX_DAMAGEMETER_TYPES = 0
-for k, v in pairs(Enum.DamageMeterType) do
-    if (v > CONST_MAX_DAMAGEMETER_TYPES) then
-        CONST_MAX_DAMAGEMETER_TYPES = v
+
+if Enum and Enum.DamageMeterType then
+    for k, v in pairs(Enum.DamageMeterType) do
+        if (v > CONST_MAX_DAMAGEMETER_TYPES) then
+            CONST_MAX_DAMAGEMETER_TYPES = v
+        end
     end
 end
 
@@ -314,18 +318,21 @@ local guidCache = {}
 ---@field DLC12_Combat_Data table
 
 local lastReset = GetTime()
-local resetOriginal = C_DamageMeter.ResetAllCombatSessions
+local resetOriginal = C_DamageMeter and C_DamageMeter.ResetAllCombatSessions
 local ResetAllCombatSessions = function()
     --print("(debug) reseting Damage Meter data", debugstack())
     resetOriginal()
     latestEncounterSessionId = 0
     latestSessionOpened = nil
 end
-C_DamageMeter.ResetAllCombatSessions = function()
-    --details reset its data first and than reset the blz data
-    if lastReset+1 < GetTime() then
-        Details:ResetSegmentData()
-        lastReset = GetTime()
+
+if C_DamageMeter then
+    C_DamageMeter.ResetAllCombatSessions = function()
+        --details reset its data first and than reset the blz data
+        if lastReset+1 < GetTime() then
+            Details:ResetSegmentData()
+            lastReset = GetTime()
+        end
     end
 end
 
@@ -709,7 +716,7 @@ local addSegment = function(parameterType, session, bIsUpdate, detailsId)
         actor.serial = sourceGUID
         actor.grupo = true
 
-        if source.specIconID then
+        if source.specIconID and not guidCache[source.specIconID] then
             guidCache[source.specIconID] = sourceGUID
         end
 
