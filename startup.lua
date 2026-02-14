@@ -63,6 +63,24 @@ function Details222.StartUp.StartMeUp()
 		LIB_OPEN_RAID_MYTHIC_PLUS_DND = true
 	end
 
+	if detailsFramework.IsAddonApocalypseWow() then
+		if (Details.breakdown_spell_tab.spellcontainer_headers["casts"]) then
+			Details.breakdown_spell_tab.spellcontainer_headers["casts"].enabled = false
+		end
+		if (Details.breakdown_spell_tab.spellcontainer_headers["critpercent"]) then
+			Details.breakdown_spell_tab.spellcontainer_headers["critpercent"].enabled = false
+		end
+		if (Details.breakdown_spell_tab.spellcontainer_headers["hits"]) then
+			Details.breakdown_spell_tab.spellcontainer_headers["hits"].enabled = false
+		end
+		if (Details.breakdown_spell_tab.spellcontainer_headers["castavg"]) then
+			Details.breakdown_spell_tab.spellcontainer_headers["castavg"].enabled = false
+		end
+		if (Details.breakdown_spell_tab.spellcontainer_headers["uptime"]) then
+			Details.breakdown_spell_tab.spellcontainer_headers["uptime"].enabled = false
+		end
+	end
+
 	-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	--row single click, this determines what happen when the user click on a bar
 
