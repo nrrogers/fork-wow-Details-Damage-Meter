@@ -363,12 +363,20 @@
 			return Details.DM.GetAvailableCombatSessions()
 		end
 
-		function Details222.B.GetCombatTime(id)
-			return Details222.B.GetSegment("Type", id, 0).durationSeconds
+		function Details222.B.GetSegmentIdFromCurrent()
+			local s = Details222.B.GetAllSegments()
+			if s[#s] then
+				return s[#s].sessionID
+			end
+			return 1
 		end
 
-		function Details222.B.GetCurrentTime()
-			return Details222.B.GetSegment("Type", 1, 0).durationSeconds
+		function Details222.B.GetCombatTime(id)
+			return Details222.B.GetSegment("ID", id, 0).durationSeconds
+		end
+
+		function Details222.B.GetCurrentTime(segmentType)
+			return Details222.B.GetSegment("Type", segmentType, 0).durationSeconds
 		end
 
 		---@type instancedifficulty
