@@ -17,12 +17,12 @@
 		end
 		local addonName, Details222 = ...
 		local version, build, date, tvs = GetBuildInfo()
-		Details.build_counter = 14718
-		Details.alpha_build_counter = 14718 --if this is higher than the regular counter, use it instead
+		Details.build_counter = 14801
+		Details.alpha_build_counter = 14801 --if this is higher than the regular counter, use it instead
 		Details.dont_open_news = true
 		Details.game_version = version
 		Details.userversion = version .. " " .. Details.build_counter
-		Details.realversion = 170 --core version, this is used to check API version for scripts and plugins (see alias below)
+		Details.realversion = 171 --core version, this is used to check API version for scripts and plugins (see alias below)
 		Details.gametoc = tvs
 		Details.APIVersion = Details.realversion --core version
 		Details.version = Details.userversion .. " (core " .. Details.realversion .. ")" --simple stirng to show to players
@@ -255,14 +255,18 @@
 		Details222.B = {}
 
 		Details222.Apocalypse = {
+			ServerInCombat = false,
 			TypeDetails = 0,
 			TypeGame = 1,
 			segmentType = 1,
-			GetType = function()
+			GetType = function() --addon wide segment type
 				return Details222.Apocalypse.segmentType
 			end,
 			SetType = function(newType)
 				Details222.Apocalypse.segmentType = newType
+			end,
+			IsServerInCombat = function()
+				return Details222.Apocalypse.ServerInCombat
 			end
 		}
 
@@ -1290,19 +1294,21 @@ do
 			past = Loc ["STRING_FIGHTNUMBER"]
 		}
 
-		Details.ApocalypseAttributeNames = {
-			[Enum.DamageMeterType.DamageDone] = DAMAGE_METER_TYPE_DAMAGE_DONE,
-			[Enum.DamageMeterType.Dps] = DAMAGE_METER_TYPE_DPS,
-			[Enum.DamageMeterType.HealingDone] = DAMAGE_METER_TYPE_HEALING_DONE,
-			[Enum.DamageMeterType.Hps] = DAMAGE_METER_TYPE_HPS,
-			[Enum.DamageMeterType.Absorbs] = DAMAGE_METER_TYPE_ABSORBS,
-			[Enum.DamageMeterType.Interrupts] = DAMAGE_METER_TYPE_INTERRUPTS,
-			[Enum.DamageMeterType.Dispels] = DAMAGE_METER_TYPE_DISPELS,
-			[Enum.DamageMeterType.DamageTaken] = DAMAGE_METER_TYPE_DAMAGE_TAKEN,
-			[Enum.DamageMeterType.AvoidableDamageTaken] = DAMAGE_METER_TYPE_AVOIDABLE_DAMAGE_TAKEN,
-			[Enum.DamageMeterType.Deaths] = DAMAGE_METER_TYPE_DEATHS,
-			[Enum.DamageMeterType.EnemyDamageTaken] = DAMAGE_METER_TYPE_ENEMY_DAMAGE_TAKEN,
-		};
+		if DetailsFramework.IsAddonApocalypseWow() then
+			Details.ApocalypseAttributeNames = {
+				[Enum.DamageMeterType.DamageDone] = DAMAGE_METER_TYPE_DAMAGE_DONE,
+				[Enum.DamageMeterType.Dps] = DAMAGE_METER_TYPE_DPS,
+				[Enum.DamageMeterType.HealingDone] = DAMAGE_METER_TYPE_HEALING_DONE,
+				[Enum.DamageMeterType.Hps] = DAMAGE_METER_TYPE_HPS,
+				[Enum.DamageMeterType.Absorbs] = DAMAGE_METER_TYPE_ABSORBS,
+				[Enum.DamageMeterType.Interrupts] = DAMAGE_METER_TYPE_INTERRUPTS,
+				[Enum.DamageMeterType.Dispels] = DAMAGE_METER_TYPE_DISPELS,
+				[Enum.DamageMeterType.DamageTaken] = DAMAGE_METER_TYPE_DAMAGE_TAKEN,
+				[Enum.DamageMeterType.AvoidableDamageTaken] = DAMAGE_METER_TYPE_AVOIDABLE_DAMAGE_TAKEN,
+				[Enum.DamageMeterType.Deaths] = DAMAGE_METER_TYPE_DEATHS,
+				[Enum.DamageMeterType.EnemyDamageTaken] = DAMAGE_METER_TYPE_ENEMY_DAMAGE_TAKEN,
+			};
+		end
 
 
 		Details._detalhes_props["modo_nome"] = {
