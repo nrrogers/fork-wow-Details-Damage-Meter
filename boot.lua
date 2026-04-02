@@ -17,8 +17,8 @@
 		end
 		local addonName, Details222 = ...
 		local version, build, date, tvs = GetBuildInfo()
-		Details.build_counter = 14812
-		Details.alpha_build_counter = 14812 --if this is higher than the regular counter, use it instead
+		Details.build_counter = 14850
+		Details.alpha_build_counter = 14850 --if this is higher than the regular counter, use it instead
 		Details.dont_open_news = true
 		Details.game_version = version
 		Details.userversion = version .. " " .. Details.build_counter
@@ -90,6 +90,20 @@
 		Details222.StartUp = {}
 
 		Details222.Unknown = _G["UNKNOWN"]
+
+		Details222.IsPTR = function()
+			local _, _, _, a = GetBuildInfo()
+			if a >= 120005 then
+				return true
+			end
+		end
+
+		function Details222.IsPTR1205()
+			local _, _, _, a = GetBuildInfo()
+			if a >= 120005 then
+				return true
+			end
+		end
 
 		--namespace color
 		Details222.ColorScheme = {
@@ -308,6 +322,10 @@
 			end
 		end
 
+		function Details222.B.GetCombatTime(type)
+			return C_DamageMeter.GetSessionDurationSeconds(type)
+		end
+
 		---usage: local actorList, amountOfActors, totalAmount, combatTime = Details222.B.GetSegmentInfo(segment)
 		---@param s damagemeter_combat_session
 		---@return damagemeter_combat_source[] actorList
@@ -404,6 +422,10 @@
 
 		function Details222.B.GetCurrentTime(segmentType)
 			return Details222.B.GetSegment("Type", segmentType, 0).durationSeconds
+		end
+
+		function Details222.B.GetOverallTime()
+			return  C_DamageMeter.GetSessionDurationSeconds(0)
 		end
 
 		function Details:BleachFontString(fontString)

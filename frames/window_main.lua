@@ -5340,6 +5340,10 @@ function Details:InstanceRefreshRows(instance)
 			row.modelbox_low:Hide()
 		end
 
+		if detailsFramework.IsAddonApocalypseWow() then
+			local forceUpdate = true
+			Details222.Apocalypse.UpdatePlayerNameLength(self, row, forceUpdate)
+		end
 	end
 
 	self:SetBarGrowDirection()
